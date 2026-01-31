@@ -1,4 +1,4 @@
 import telebot
 
-myBot= "Your bot token"
-bot= telebot.TeleBot(myBot)
+myTokenBot= "Your bot token"
+bot= telebot.TeleBot(myTokenBot)
