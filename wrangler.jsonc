@@ -27,6 +27,11 @@
 			"type": "Data",
 			"globs": ["**/*.jpg", "**/*.jpeg", "**/*.png"],
 			"fallthrough": true 
+		},
+		{
+			"type": "Text",
+			"globs": ["**/*.css"],
+			"fallthrough": true
 		}
   	],
 	"triggers": {

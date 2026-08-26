@@ -1,0 +1,572 @@
+(() => {
+  "use strict";
+
+  const $ = (s, r = document) => r.querySelector(s);
+  const $$ = (s, r = document) => [...r.querySelectorAll(s)];
+  const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  const finePointer = window.matchMedia("(pointer:fine)").matches;
+  const pageId = document.body.dataset.page || "home";
+
+  /* ================= I18N ================= */
+  const FA_DIGITS = "\u06F0\u06F1\u06F2\u06F3\u06F4\u06F5\u06F6\u06F7\u06F8\u06F9";
+  let curLang = "en";
+
+  const T = {
+    en: {
+      "doc.title": "SAVE HOME — Hazbin Hotel × Helluva Boss Tribute",
+      "doc.about": "About — SAVE HOME",
+      "doc.telegram": "Telegram — SAVE HOME",
+      "doc.nf": "404 — SAVE HOME",
+      "nav.shows": "Shows", "nav.cast": "Cast", "nav.realms": "Realms", "nav.quotes": "Quotes",
+      "nav.about": "About", "nav.telegram": "Telegram",
+      "theme.toLight": "Enter the Light", "theme.toDark": "Return to Darkness",
+      "hero.kicker": "A fan tribute to the worlds of VivziePop",
+      "hero.heaven": "HEAVEN", "hero.amp": "&", "hero.hell": "HELL",
+      "hero.sub": "Where Charlie Morningstar redeems sinners at the Happy Hotel \u2014 and Blitz\u00F8 runs the afterlife's deadliest little startup.",
+      "hero.ctaHell": "Descend into Hell", "hero.ctaHeaven": "Ascend to Heaven",
+      "marquee.text": "HAZBIN HOTEL \u2726 HELLUVA BOSS \u2726 WELCOME TO THE AFTERLIFE \u2726 MAKE HELL GREAT AGAIN \u2726 REDEMPTION AWAITS \u2726 I.M.P. \u2014 IMMEDIATE MURDER PROFESSIONALS \u2726 CHECK IN, CHECK OUT \u2726\u00A0",
+      "shows.kicker": "// Two shows, one underworld",
+      "shows.title": "Pick Your Poison",
+      "hazbin.name": "Hazbin Hotel",
+      "hazbin.tagline": "Redemption is hard work.",
+      "hazbin.desc": "Charlie Morningstar, Princess of Hell, opens a hotel with one impossible goal: rehabilitate sinners so they can be redeemed and enter Heaven \u2014 before the yearly Extermination wipes them out. Armed with optimism, her girlfriend Vaggie, and a suspiciously smiling deal-maker called Alastor\u2026 what could go wrong?",
+      "hazbin.c1": "Vivienne Medrano", "hazbin.c2": "A24 \u00D7 SpindleHorse", "hazbin.c3": "Prime Video", "hazbin.c4": "2024",
+      "imp.name": "Helluva Boss",
+      "imp.tagline": "Murder. But make it family business.",
+      "imp.desc": "Down in Imp City, Blitz\u00F8 founds I.M.P. \u2014 Immediate Murder Professionals \u2014 an assassination agency that travels to the living world through a magical grimoire to kill targets on behalf of Hell's denizens. With Moxxie's aim, Millie's rage and Loona's attitude, business is booming.",
+      "imp.c1": "Vivienne Medrano", "imp.c2": "SpindleHorse Toons", "imp.c3": "YouTube", "imp.c4": "2019",
+      "wiki.btn": "Fandom Wiki \u2197",
+      "chars.kicker": "// Sinners, imps & seraphim",
+      "chars.title": "The Cast of the Afterlife",
+      "tab.all": "Everyone", "tab.hazbin": "Hazbin Hotel", "tab.imp": "I.M.P. & Co.", "tab.heaven": "Heaven's Court",
+      "stat.series": "Ongoing Series", "stat.rings": "Rings of Hell", "stat.fun": "Sinfully Fun", "stat.hotel": "Hotel of Dreams",
+      "realms.kicker": "// Maps of the great beyond",
+      "realms.title": "Explore the Realms",
+      "realm1.name": "The Happy Hotel",
+      "realm1.desc": "Charlie's lifelong dream: give sinners a second chance and check them straight into Heaven. Vacancy forever.",
+      "realm2.name": "Pride Ring",
+      "realm2.desc": "Home of Pentagram City, Imp City and every sinner with an ego. The sky burns crimson and nobody sleeps.",
+      "realm3.name": "I.M.P. HQ",
+      "realm3.desc": "Immediate Murder Professionals. Killing the living so the damned stay happy. As Seen on TV (barely).",
+      "realm4.name": "The Gates of Heaven",
+      "realm4.desc": "Golden streets, singing winners, and one endlessly enthusiastic seraph named Emily. Try not to get judged.",
+      "quotes.kicker": "// Words to damn (or save) you",
+      "quotes.title": "Say It Like They Do",
+      "quotes.hint": "Click for another quote",
+      "foot.note": "A glowing tribute built by fans, for fans. Made of gold dust, embers and far too many rewatches.",
+      "foot.explore": "Explore", "foot.shows": "The Shows", "foot.cast": "The Cast", "foot.realms": "The Realms", "foot.quotes": "The Quotes",
+      "foot.follow": "Follow SAVE HOME",
+      "foot.telegram": "Telegram \u2014 @SAVEH00ME", "foot.youtube": "YouTube \u2014 @SAVEH00ME", "foot.instagram": "Instagram \u2014 @SAVEH00ME",
+      "foot.watch": "Watch Officially",
+      "foot.wikiHazbin": "Hazbin Hotel Wiki", "foot.wikiHelluva": "Helluva Boss Wiki", "foot.prime": "Prime Video",
+      "legal.text": "\u00A9 2026 SAVE HOME \u00B7 Fan project only. <em>Hazbin Hotel</em>, <em>Helluva Boss</em> and all characters are \u00A9 Vivienne \u201CVivziePop\u201D Medrano, SpindleHorse Toons, A24, Amazon MGM Studios & Bento Box Entertainment.",
+      "about.kicker": "// Behind the hotel key",
+      "about.title": "About SAVE HOME",
+      "about.p1": "SAVE HOME is a fan-made tribute to Hazbin Hotel and Helluva Boss \u2014 two worlds where redemption is hard work and family business means murder. We built this place for the fans who never stopped smiling.",
+      "about.p2": "Wander through the cast of the afterlife, explore the realms from the Pride Ring to the Gates of Heaven, collect quotes worth framing \u2014 and pick a side: golden light or crimson fire.",
+      "about.p3": "This is a non-commercial project. All shows and characters belong to Vivienne \u201CVivziePop\u201D Medrano, SpindleHorse Toons, A24 and partners.",
+      "about.back": "Back to the Hotel",
+      "tg.kicker": "// One ping away",
+      "tg.title": "Find Us on Telegram",
+      "tg.sub": "Fresh drops, behind-the-scenes chaos and daily doses of hellfire \u2014 all in one channel.",
+      "tg.tagline": "The official SAVE HOME channel.",
+      "tg.body": "Hit join and never miss a thing: episode reactions, art drops, polls, and the occasional deal with a smiling Radio Demon.",
+      "tg.cta": "Join @SAVEH00ME on Telegram",
+      "tg.ctaShort": "Join @SAVEH00ME",
+      "tg.visit": "Visit \u2197",
+      "nf.kicker": "// Room not found",
+      "nf.code": "404",
+      "nf.sub": "This room was demolished in the last Extermination. Charlie is working on it \u2014 please come back later.",
+      "nf.home": "Back to the Hotel"
+    },
+    fa: {
+      "doc.title": "\u0633\u06CC\u0648 \u0647\u0648\u0645 \u2014 \u0627\u062F\u0627\u06CC \u0627\u062D\u062A\u0631\u0627\u0645\u06CC \u0628\u0647 \u0647\u0627\u0632\u0628\u06CC\u0646 \u0647\u062A\u0644 \u0648 \u0647\u0644\u0648\u0627 \u0628\u0627\u0633",
+      "doc.about": "\u062F\u0631\u0628\u0627\u0631\u0647 \u2014 \u0633\u06CC\u0648 \u0647\u0648\u0645",
+      "doc.telegram": "\u062A\u0644\u06AF\u0631\u0627\u0645 \u2014 \u0633\u06CC\u0648 \u0647\u0648\u0645",
+      "doc.nf": "\u06F4\u06F0\u06F4 \u2014 \u0633\u06CC\u0648 \u0647\u0648\u0645",
+      "nav.shows": "\u0633\u0631\u06CC\u0627\u0644\u200C\u0647\u0627", "nav.cast": "\u0634\u062E\u0635\u06CC\u062A\u200C\u0647\u0627", "nav.realms": "\u0642\u0644\u0645\u0631\u0648\u0647\u0627", "nav.quotes": "\u0646\u0642\u0644\u200C\u0642\u0648\u0644\u200C\u0647\u0627",
+      "nav.about": "\u062F\u0631\u0628\u0627\u0631\u0647 \u0645\u0627", "nav.telegram": "\u062A\u0644\u06AF\u0631\u0627\u0645",
+      "theme.toLight": "\u0648\u0627\u0631\u062F \u0646\u0648\u0631 \u0634\u0648", "theme.toDark": "\u0628\u0647 \u062A\u0627\u0631\u06CC\u06A9\u06CC \u0628\u0627\u0632\u06AF\u0631\u062F",
+      "hero.kicker": "\u0627\u062F\u0627\u06CC \u0627\u062D\u062A\u0631\u0627\u0645\u06CC \u0627\u0632 \u0637\u0631\u0641\u062F\u0627\u0631\u0627\u0646\u060C \u0628\u0647 \u062C\u0647\u0627\u0646\u200C\u0647\u0627\u06CC \u0648\u06CC\u0632\u06CC\u200C\u067E\u0627\u067E",
+      "hero.heaven": "\u0628\u0647\u0634\u062A", "hero.amp": "\u0648", "hero.hell": "\u062F\u0648\u0632\u062E",
+      "hero.sub": "\u062C\u0627\u06CC\u06CC \u06A9\u0647 \u0686\u0627\u0631\u0644\u06CC \u0645\u0648\u0631\u0646\u06CC\u0646\u06AF\u200C\u0627\u0633\u062A\u0627\u0631 \u062F\u0631 \u0647\u062A\u0644 \u0634\u0627\u062F\u06CC\u060C \u06AF\u0646\u0627\u0647\u06A9\u0627\u0631\u0627\u0646 \u0631\u0627 \u0631\u0633\u062A\u06AF\u0627\u0631 \u0645\u06CC\u200C\u06A9\u0646\u062F \u2014 \u0648 \u0628\u0644\u06CC\u062A\u0632\u0648 \u0645\u0631\u06AF\u200C\u0628\u0627\u0631\u062A\u0631\u06CC\u0646 \u0627\u0633\u062A\u0627\u0631\u062A\u0627\u067E \u06A9\u0648\u0686\u06A9\u0650 \u0632\u0646\u062F\u06AF\u06CC \u067E\u0633 \u0627\u0632 \u0645\u0631\u06AF \u0631\u0627 \u0627\u062F\u0627\u0631\u0647 \u0645\u06CC\u200C\u06A9\u0646\u062F.",
+      "hero.ctaHell": "\u0628\u0647 \u062F\u0648\u0632\u062E \u0641\u0631\u0648\u062F \u0628\u06CC\u0627", "hero.ctaHeaven": "\u0628\u0647 \u0628\u0647\u0634\u062A \u0635\u0639\u0648\u062F \u06A9\u0646",
+      "marquee.text": "\u0647\u0627\u0632\u0628\u06CC\u0646 \u0647\u062A\u0644 \u2726 \u0647\u0644\u0648\u0627 \u0628\u0627\u0633 \u2726 \u0628\u0647 \u0632\u0646\u062F\u06AF\u06CC \u067E\u0633 \u0627\u0632 \u0645\u0631\u06AF \u062E\u0648\u0634 \u0622\u0645\u062F\u06CC\u062F \u2726 \u062F\u0648\u0632\u062E \u0631\u0627 \u062F\u0648\u0628\u0627\u0631\u0647 \u0628\u0632\u0631\u06AF \u06A9\u0646\u06CC\u0645 \u2726 \u0631\u0633\u062A\u06AF\u0627\u0631\u06CC \u062F\u0631 \u0631\u0627\u0647 \u0627\u0633\u062A \u2726 \u0622\u06CC.\u0627\u0645.\u067E\u06CC \u2014 \u0645\u062A\u062E\u0635\u0635\u0627\u0646 \u062D\u0631\u0641\u0647\u200C\u0627\u06CC \u0642\u062A\u0644 \u0641\u0648\u0631\u06CC \u2726 \u0686\u06A9\u200C\u0627\u06CC\u0646 \u06A9\u0646\u060C \u0686\u06A9\u200C\u0627\u0648\u062A \u06A9\u0646 \u2726\u00A0",
+      "shows.kicker": "// \u062F\u0648 \u0633\u0631\u06CC\u0627\u0644\u060C \u06CC\u06A9 \u062C\u0647\u0627\u0646\u0650 \u0632\u06CC\u0631\u06CC\u0646",
+      "shows.title": "\u0627\u0646\u062A\u062E\u0627\u0628 \u0628\u0627 \u0634\u0645\u0627\u0633\u062A",
+      "hazbin.name": "\u0647\u0627\u0632\u0628\u06CC\u0646 \u0647\u062A\u0644",
+      "hazbin.tagline": "\u0631\u0633\u062A\u06AF\u0627\u0631\u06CC\u060C \u06A9\u0627\u0631 \u0633\u062E\u062A\u06CC \u0627\u0633\u062A.",
+      "hazbin.desc": "\u0686\u0627\u0631\u0644\u06CC \u0645\u0648\u0631\u0646\u06CC\u0646\u06AF\u200C\u0627\u0633\u062A\u0627\u0631\u060C \u0634\u0627\u0647\u062F\u062E\u062A \u062F\u0648\u0632\u062E\u060C \u0647\u062A\u0644\u06CC \u0645\u06CC\u200C\u06AF\u0634\u0627\u06CC\u062F \u0628\u0627 \u0647\u062F\u0641\u06CC \u062F\u0633\u062A\u200C\u0646\u06CC\u0627\u0641\u062A\u0646\u06CC: \u0628\u0627\u0632\u067E\u0631\u0648\u0631\u06CC \u06AF\u0646\u0627\u0647\u06A9\u0627\u0631\u0627\u0646 \u062A\u0627 \u0631\u0633\u062A\u06AF\u0627\u0631 \u0634\u062F\u0647 \u0648 \u067E\u0627 \u0628\u0647 \u0628\u0647\u0634\u062A \u0628\u06AF\u0630\u0627\u0631\u0646\u062F \u2014 \u067E\u06CC\u0634 \u0627\u0632 \u0622\u0646\u06A9\u0647 \u067E\u0627\u06A9\u0633\u0627\u0632\u06CC \u0633\u0627\u0644\u0627\u0646\u0647\u060C \u0647\u0645\u0647 \u0631\u0627 \u0627\u0632 \u0645\u06CC\u0627\u0646 \u0628\u0628\u0631\u062F. \u0645\u0633\u0644\u062D \u0628\u0647 \u0627\u0634\u062A\u06CC\u0627\u0642\u06CC \u0628\u06CC\u200C\u067E\u0627\u06CC\u0627\u0646\u060C \u06CC\u0627\u0631 \u0648\u0641\u0627\u062F\u0627\u0631\u0634 \u0648\u0627\u06AF\u06CC\u060C \u0648 \u0645\u0639\u0627\u0645\u0644\u0647\u200C\u06AF\u0631\u06CC \u0645\u0634\u06A9\u0648\u06A9 \u0628\u0647 \u0646\u0627\u0645 \u0622\u0644\u0627\u0633\u062A\u0648\u0631 \u06A9\u0647 \u0647\u0645\u06CC\u0634\u0647 \u0644\u0628\u062E\u0646\u062F \u0645\u06CC\u200C\u0632\u0646\u062F\u2026 \u0686\u0647 \u0686\u06CC\u0632\u06CC \u0645\u06CC\u200C\u062A\u0648\u0627\u0646\u062F \u062E\u0631\u0627\u0628 \u0634\u0648\u062F\u061F",
+      "hazbin.c1": "\u0648\u06CC\u0648\u06CC\u0646 \u0645\u062F\u0631\u0627\u0646\u0648", "hazbin.c2": "A24 \u00D7 \u0627\u0633\u067E\u06CC\u0646\u062F\u0644\u200C\u0647\u0648\u0631\u0633", "hazbin.c3": "\u067E\u0631\u0627\u06CC\u0645 \u0648\u06CC\u062F\u06CC\u0648", "hazbin.c4": "\u06F2\u06F0\u06F2\u06F4",
+      "imp.name": "\u0647\u0644\u0648\u0627 \u0628\u0627\u0633",
+      "imp.tagline": "\u0642\u062A\u0644\u061B \u0627\u0645\u0627 \u062F\u0631 \u0642\u0627\u0644\u0628 \u06A9\u0627\u0631 \u062E\u0627\u0646\u0648\u0627\u062F\u06AF\u06CC.",
+      "imp.desc": "\u062F\u0631 \u0627\u06CC\u0645\u067E\u200C\u0633\u06CC\u062A\u06CC\u060C \u0628\u0644\u06CC\u062A\u0632\u0648 \u06A9\u0633\u0628\u200C\u0648\u06A9\u0627\u0631\u06CC \u0631\u0627\u0647 \u0645\u06CC\u200C\u0627\u0646\u062F\u0627\u0632\u062F \u0628\u0647 \u0646\u0627\u0645 \u0622\u06CC.\u0627\u0645.\u067E\u06CC. \u2014 \u00AB\u0645\u062A\u062E\u0635\u0635\u0627\u0646 \u062D\u0631\u0641\u0647\u200C\u0627\u06CC \u0642\u062A\u0644 \u0641\u0648\u0631\u06CC\u00BB \u2014 \u0622\u0698\u0627\u0646\u0633 \u062A\u0631\u0648\u0631\u06CC \u06A9\u0647 \u0628\u0647 \u06A9\u0645\u06A9 \u06A9\u062A\u0627\u0628 \u0627\u0641\u0633\u0648\u0646 \u062C\u0627\u062F\u0648\u06CC\u06CC \u0628\u0647 \u062F\u0646\u06CC\u0627\u06CC \u0632\u0646\u062F\u0647\u200C\u0647\u0627 \u0633\u0641\u0631 \u0645\u06CC\u200C\u06A9\u0646\u062F \u062A\u0627 \u0647\u062F\u0641 \u0645\u0634\u062A\u0631\u06CC\u0627\u0646 \u0627\u0647\u0644 \u062F\u0648\u0632\u062E \u0631\u0627 \u0627\u0632 \u0645\u06CC\u0627\u0646 \u0628\u0631\u062F\u0627\u0631\u062F. \u0628\u0627 \u062A\u06CC\u0631\u0627\u0646\u062F\u0627\u0632\u06CC \u062F\u0642\u06CC\u0642 \u0645\u0648\u06A9\u0633\u06CC\u060C \u062E\u0634\u0645 \u0645\u06CC\u0644\u06CC \u0648 \u0627\u062E\u0644\u0627\u0642\u06CC\u0627\u062A \u0644\u0648\u0648\u0646\u0627\u060C \u06A9\u0627\u0631\u0634\u0627\u0646 \u062D\u0633\u0627\u0628\u06CC \u0631\u0648 \u0628\u0647 \u0631\u0648\u0646\u0642 \u0627\u0633\u062A.",
+      "imp.c1": "\u0648\u06CC\u0648\u06CC\u0646 \u0645\u062F\u0631\u0627\u0646\u0648", "imp.c2": "\u0627\u0633\u067E\u06CC\u0646\u062F\u0644\u200C\u0647\u0648\u0631\u0633 \u062A\u0648\u0646\u0632", "imp.c3": "\u06CC\u0648\u062A\u06CC\u0648\u0628", "imp.c4": "\u06F2\u06F0\u06F1\u06F9",
+      "wiki.btn": "\u0648\u06CC\u06A9\u06CC \u0641\u0646\u062F\u0645 \u2197",
+      "chars.kicker": "// \u06AF\u0646\u0627\u0647\u06A9\u0627\u0631\u0627\u0646\u060C \u0627\u06CC\u0645\u067E\u200C\u0647\u0627 \u0648 \u0633\u0631\u0627\u0641\u06CC\u0645\u200C\u0647\u0627",
+      "chars.title": "\u0633\u062A\u0627\u0631\u06AF\u0627\u0646 \u062C\u0647\u0627\u0646 \u067E\u0633 \u0627\u0632 \u0645\u0631\u06AF",
+      "tab.all": "\u0647\u0645\u0647", "tab.hazbin": "\u0647\u0627\u0632\u0628\u06CC\u0646 \u0647\u062A\u0644", "tab.imp": "\u0622\u06CC.\u0627\u0645.\u067E\u06CC \u0648 \u0647\u0645\u06A9\u0627\u0631\u0627\u0646", "tab.heaven": "\u062F\u0631\u06AF\u0627\u0647 \u0628\u0647\u0634\u062A",
+      "stat.series": "\u0633\u0631\u06CC\u0627\u0644 \u062F\u0631 \u062D\u0627\u0644 \u067E\u062E\u0634", "stat.rings": "\u062D\u0644\u0642\u0647\u200C\u0647\u0627\u06CC \u062F\u0648\u0632\u062E", "stat.fun": "\u0633\u0631\u06AF\u0631\u0645\u06CC \u06AF\u0646\u0627\u0647\u200C\u0622\u0644\u0648\u062F", "stat.hotel": "\u0647\u062A\u0644 \u0631\u0648\u06CC\u0627\u06CC\u06CC",
+      "realms.kicker": "// \u0646\u0642\u0634\u0647\u0627\u06CC \u062C\u0647\u0627\u0646\u200C\u0647\u0627\u06CC \u062F\u06CC\u06AF\u0631",
+      "realms.title": "\u06A9\u0627\u0648\u0634 \u062F\u0631 \u0642\u0644\u0645\u0631\u0648\u0647\u0627",
+      "realm1.name": "\u0647\u062A\u0644 \u0634\u0627\u062F\u06CC",
+      "realm1.desc": "\u0631\u0624\u06CC\u0627\u06CC \u062F\u06CC\u0631\u06CC\u0646\u0647\u0650 \u0686\u0627\u0631\u0644\u06CC: \u0641\u0631\u0635\u062A\u06CC \u062F\u0648\u0628\u0627\u0631\u0647 \u0628\u0631\u0627\u06CC \u06AF\u0646\u0627\u0647\u06A9\u0627\u0631\u0627\u0646\u060C \u062A\u0627 \u0645\u0633\u062A\u0642\u06CC\u0645 \u0648\u0627\u0631\u062F \u0628\u0647\u0634\u062A \u0634\u0648\u0646\u062F. \u0628\u0631\u0627\u06CC \u0647\u0645\u06CC\u0634\u0647 \u0627\u062A\u0627\u0642 \u062E\u0627\u0644\u06CC \u062F\u0627\u0631\u06CC\u0645.",
+      "realm2.name": "\u062D\u0644\u0642\u0647\u0650 \u063A\u0631\u0648\u0631",
+      "realm2.desc": "\u062E\u0627\u0646\u0647\u0650 \u0634\u0647\u0631 \u067E\u0646\u062A\u0627\u06AF\u0631\u0627\u0645\u060C \u0627\u06CC\u0645\u067E\u200C\u0633\u06CC\u062A\u06CC \u0648 \u0647\u0631 \u06AF\u0646\u0627\u0647\u06A9\u0627\u0631\u06CC \u06A9\u0647 \u063A\u0631\u0648\u0631\u0634 \u0627\u062C\u0627\u0632\u0647 \u0646\u0645\u06CC\u200C\u062F\u0647\u062F. \u0622\u0633\u0645\u0627\u0646 \u0647\u0645\u06CC\u0634\u0647 \u0633\u0631\u062E \u0627\u0633\u062A \u0648 \u06A9\u0633\u06CC \u062E\u0648\u0627\u0628 \u0628\u0647 \u0686\u0634\u0645 \u0646\u0645\u06CC\u200C\u0622\u0648\u062F.",
+      "realm3.name": "\u062F\u0641\u062A\u0631 \u0645\u0631\u06A9\u0632\u06CC \u0622\u06CC.\u0627\u0645.\u067E\u06CC",
+      "realm3.desc": "\u0645\u062A\u062E\u0635\u0635\u0627\u0646 \u062D\u0631\u0641\u0647\u200C\u0627\u06CC \u0642\u062A\u0644 \u0641\u0648\u0631\u06CC\u061B \u0632\u0646\u062F\u0647\u200C\u0647\u0627 \u0631\u0627 \u0645\u06CC\u200C\u06A9\u0634\u06CC\u0645 \u062A\u0627 \u0627\u0647\u0627\u0644\u06CC \u062F\u0648\u0632\u062E \u0634\u0627\u062F \u0628\u0645\u0627\u0646\u0646\u062F. \u062A\u0628\u0644\u06CC\u063A \u062A\u0644\u0648\u06CC\u0632\u06CC\u0648\u0646\u06CC \u0647\u0645 \u062F\u0627\u0634\u062A\u06CC\u0645 (\u0628\u0647\u200C\u0633\u062E\u062A\u06CC).",
+      "realm4.name": "\u062F\u0631\u0648\u0627\u0632\u0647\u200C\u0647\u0627\u06CC \u0628\u0647\u0634\u062A",
+      "realm4.desc": "\u062E\u06CC\u0627\u0628\u0627\u0646\u200C\u0647\u0627\u06CC \u0637\u0644\u0627\u06CC\u06CC\u060C \u0633\u0631\u0648\u062F\u062E\u0648\u0627\u0646\u0627\u0646 \u0628\u0631\u0646\u062F\u0647\u060C \u0648 \u0633\u0631\u0627\u0641\u06CC\u0645\u06CC \u0628\u0647\u200C\u0634\u062F\u062A \u067E\u0631\u0634\u0648\u0631 \u0628\u0647 \u0646\u0627\u0645 \u0627\u0645\u06CC\u0644\u06CC. \u06A9\u0627\u0631\u06CC \u06A9\u0646\u06CC\u062F \u0642\u0636\u0627\u0648\u062A\u062A\u0627\u0646 \u0646\u06A9\u0646\u0646\u062F!",
+      "quotes.kicker": "// \u062C\u0645\u0644\u0647\u200C\u0647\u0627\u06CC\u06CC \u0628\u0631\u0627\u06CC \u0631\u0633\u062A\u06AF\u0627\u0631\u06CC (\u06CC\u0627 \u0647\u0644\u0627\u06A9\u062A) \u0634\u0645\u0627",
+      "quotes.title": "\u0647\u0645\u200C\u0635\u062F\u0627 \u0628\u0627 \u0622\u0646\u200C\u0647\u0627 \u0628\u06AF\u0648",
+      "quotes.hint": "\u0628\u0631\u0627\u06CC \u0646\u0642\u0644\u200C\u0642\u0648\u0644 \u0628\u0639\u062F\u06CC \u06A9\u0644\u06CC\u06A9 \u06A9\u0646\u06CC\u062F",
+      "foot.note": "\u062A\u0642\u062F\u06CC\u0645\u06CC \u062F\u0631\u062E\u0634\u0627\u0646\u060C \u0633\u0627\u062E\u062A\u0647\u0650 \u0637\u0631\u0641\u062F\u0627\u0631\u0627\u0646 \u0628\u0631\u0627\u06CC \u0637\u0631\u0641\u062F\u0627\u0631\u0627\u0646\u061B \u0627\u0632 \u06AF\u0631\u062F \u0648 \u063A\u0628\u0627\u0631 \u0637\u0644\u0627\u06CC\u06CC\u060C \u0627\u062E\u06AF\u0631\u0647\u0627 \u0648 \u06A9\u0644\u06CC \u062A\u0645\u0627\u0634\u0627\u06CC \u062F\u0648\u0628\u0627\u0631\u0647.",
+      "foot.explore": "\u06A9\u0627\u0648\u0634", "foot.shows": "\u0633\u0631\u06CC\u0627\u0644\u200C\u0647\u0627", "foot.cast": "\u0634\u062E\u0635\u06CC\u062A\u200C\u0647\u0627", "foot.realms": "\u0642\u0644\u0645\u0631\u0648\u0647\u0627", "foot.quotes": "\u0646\u0642\u0644\u200C\u0642\u0648\u0644\u200C\u0647\u0627",
+      "foot.follow": "\u0633\u06CC\u0648 \u0647\u0648\u0645 \u0631\u0627 \u062F\u0646\u0628\u0627\u0644 \u06A9\u0646\u06CC\u062F",
+      "foot.telegram": "\u062A\u0644\u06AF\u0631\u0627\u0645 \u2014 @SAVEH00ME", "foot.youtube": "\u06CC\u0648\u062A\u06CC\u0648\u0628 \u2014 @SAVEH00ME", "foot.instagram": "\u0627\u06CC\u0646\u0633\u062A\u0627\u06AF\u0631\u0627\u0645 \u2014 @SAVEH00ME",
+      "foot.watch": "\u062A\u0645\u0627\u0634\u0627\u06CC \u0631\u0633\u0645\u06CC",
+      "foot.wikiHazbin": "\u0648\u06CC\u06A9\u06CC \u0647\u0627\u0632\u0628\u06CC\u0646 \u0647\u062A\u0644", "foot.wikiHelluva": "\u0648\u06CC\u06A9\u06CC \u0647\u0644\u0648\u0627 \u0628\u0627\u0633", "foot.prime": "\u067E\u0631\u0627\u06CC\u0645 \u0648\u06CC\u062F\u06CC\u0648",
+      "legal.text": "\u00A9 \u06F2\u06F0\u06F2\u06F6 \u0633\u06CC\u0648 \u0647\u0648\u0645 \u00B7 \u067E\u0631\u0648\u0698\u0647\u200C\u0627\u06CC \u063A\u06CC\u0631\u062A\u062C\u0627\u0631\u06CC \u0648 \u0637\u0631\u0641\u062F\u0627\u0631\u06CC \u0627\u0633\u062A. \u0647\u0627\u0632\u0628\u06CC\u0646 \u0647\u062A\u0644\u060C \u0647\u0644\u0648\u0627 \u0628\u0627\u0633 \u0648 \u062A\u0645\u0627\u0645 \u0634\u062E\u0635\u06CC\u062A\u200C\u0647\u0627 \u0645\u062A\u0639\u0644\u0642 \u0628\u0647 \u0648\u06CC\u0648\u06CC\u0646 \u00AB\u0648\u06CC\u0632\u06CC\u200C\u067E\u0627\u067E\u00BB \u0645\u062F\u0631\u0627\u0646\u0648\u060C \u0627\u0633\u067E\u06CC\u0646\u062F\u0644\u200C\u0647\u0648\u0631\u0633 \u062A\u0648\u0646\u0632\u060C A24\u060C \u0622\u0645\u0627\u0632\u0648\u0646 \u0627\u0645\u200C\u062C\u06CC\u200C\u0627\u0645 \u0648 \u0628\u0646\u062A\u0648 \u0628\u0627\u06A9\u0633 \u0627\u0646\u062A\u0631\u062A\u06CC\u0646\u0645\u0646\u062A \u0627\u0633\u062A.",
+      "about.kicker": "// \u067E\u0634\u062A \u06A9\u0644\u06CC\u062F \u0647\u062A\u0644",
+      "about.title": "\u062F\u0631\u0628\u0627\u0631\u0647 \u0633\u06CC\u0648 \u0647\u0648\u0645",
+      "about.p1": "\u0633\u06CC\u0648 \u0647\u0648\u0645 \u062A\u0642\u062F\u06CC\u0645\u06CC\u200C\u0627\u06CC \u0637\u0631\u0641\u062F\u0627\u0631\u06CC \u0628\u0647 \u0647\u0627\u0632\u0628\u06CC\u0646 \u0647\u062A\u0644 \u0648 \u0647\u0644\u0648\u0627 \u0628\u0627\u0633 \u0627\u0633\u062A \u2014 \u062F\u0648 \u062C\u0647\u0627\u0646\u06CC \u06A9\u0647 \u062F\u0631 \u0622\u0646\u200C\u0647\u0627 \u0631\u0633\u062A\u06AF\u0627\u0631\u06CC \u06A9\u0627\u0631 \u0633\u062E\u062A\u06CC \u0627\u0633\u062A \u0648 \u00AB\u06A9\u0627\u0631 \u062E\u0627\u0646\u0648\u0627\u062F\u06AF\u06CC\u00BB \u06CC\u0639\u0646\u06CC \u0642\u062A\u0644. \u0627\u06CC\u0646\u062C\u0627 \u0631\u0627 \u0628\u0631\u0627\u06CC \u0637\u0631\u0641\u062F\u0627\u0631\u0627\u0646\u06CC \u0633\u0627\u062E\u062A\u06CC\u0645 \u06A9\u0647 \u0644\u0628\u062E\u0646\u062F\u0634\u0627\u0646 \u062A\u0631\u06A9 \u0646\u0634\u062F\u0647 \u0627\u0633\u062A.",
+      "about.p2": "\u0628\u06CC\u0646 \u0633\u062A\u0627\u0631\u06AF\u0627\u0646 \u062C\u0647\u0627\u0646 \u067E\u0633 \u0627\u0632 \u0645\u0631\u06AF \u0628\u06AF\u0631\u062F\u06CC\u062F\u060C \u0627\u0632 \u062D\u0644\u0642\u0647\u0650 \u063A\u0631\u0648\u0631 \u062A\u0627 \u062F\u0631\u0648\u0627\u0632\u0647\u200C\u0647\u0627\u06CC \u0628\u0647\u0634\u062A \u0631\u0627 \u06A9\u0627\u0648\u0634 \u06A9\u0646\u06CC\u062F\u060C \u0646\u0642\u0644\u200C\u0642\u0648\u0644\u200C\u0647\u0627\u06CC \u0642\u0627\u0628\u200C\u06AF\u0631\u0641\u062A\u0646\u06CC \u062C\u0645\u0639 \u06A9\u0646\u06CC\u062F \u2014 \u0648 \u0637\u0631\u0641\u062A\u0627\u0646 \u0631\u0627 \u0627\u0646\u062A\u062E\u0627\u0628 \u06A9\u0646\u06CC\u062F: \u0646\u0648\u0631 \u0637\u0644\u0627\u06CC\u06CC \u06CC\u0627 \u0622\u062A\u0634 \u0633\u0631\u062E.",
+      "about.p3": "\u0627\u06CC\u0646 \u067E\u0631\u0648\u0698\u0647\u200C\u0627\u06CC \u063A\u06CC\u0631\u062A\u062C\u0627\u0631\u06CC \u0627\u0633\u062A. \u062A\u0645\u0627\u0645 \u0633\u0631\u06CC\u0627\u0644\u200C\u0647\u0627 \u0648 \u0634\u062E\u0635\u06CC\u062A\u200C\u0647\u0627 \u0645\u062A\u0639\u0644\u0642 \u0628\u0647 \u0648\u06CC\u0648\u06CC\u0646 \u00AB\u0648\u06CC\u0632\u06CC\u200C\u067E\u0627\u067E\u00BB \u0645\u062F\u0631\u0627\u0646\u0648\u060C \u0627\u0633\u067E\u06CC\u0646\u062F\u0644\u200C\u0647\u0648\u0631\u0633 \u062A\u0648\u0646\u0632\u060C A24 \u0648 \u0647\u0645\u06A9\u0627\u0631\u0627\u0646 \u0627\u0633\u062A.",
+      "about.back": "\u0628\u0627\u0632\u06AF\u0634\u062A \u0628\u0647 \u0647\u062A\u0644",
+      "tg.kicker": "// \u0641\u0642\u0637 \u06CC\u06A9 \u067E\u06CC\u0627\u0645 \u0641\u0627\u0635\u0644\u0647 \u062F\u0627\u0631\u06CC\u0645",
+      "tg.title": "\u0645\u0627 \u0631\u0627 \u062F\u0631 \u062A\u0644\u06AF\u0631\u0627\u0645 \u067E\u06CC\u062F\u0627 \u06A9\u0646\u06CC\u062F",
+      "tg.sub": "\u062A\u0627\u0632\u0647\u200C\u062A\u0631\u06CC\u0646\u200C\u0647\u0627\u060C \u0647\u06CC\u0627\u0647\u0648\u06CC \u067E\u0634\u062A \u0635\u062D\u0646\u0647 \u0648 \u062C\u0631\u0639\u0647\u200C\u062C\u0631\u0639\u0647 \u0622\u062A\u0634 \u062F\u0648\u0632\u062E \u2014 \u0647\u0645\u0647 \u062F\u0631 \u06CC\u06A9 \u06A9\u0627\u0646\u0627\u0644.",
+      "tg.tagline": "\u06A9\u0627\u0646\u0627\u0644 \u0631\u0633\u0645\u06CC \u0633\u06CC\u0648 \u0647\u0648\u0645.",
+      "tg.body": "\u0639\u0636\u0648 \u0634\u0648\u06CC\u062F \u0648 \u0647\u06CC\u0686 \u0686\u06CC\u0632\u06CC \u0631\u0627 \u0627\u0632 \u062F\u0633\u062A \u0646\u062F\u0647\u06CC\u062F: \u0648\u0627\u06A9\u0646\u0634\u200C\u0647\u0627 \u0628\u0647 \u0642\u0633\u0645\u062A\u200C\u0647\u0627\u060C \u0627\u0646\u062A\u0634\u0627\u0631 \u0622\u062B\u0627\u0631\u060C \u0646\u0638\u0631\u0633\u0646\u062C\u06CC\u200C\u0647\u0627 \u0648 \u06AF\u0627\u0647\u06CC \u0645\u0639\u0627\u0645\u0644\u0647\u200C\u0627\u06CC \u0628\u0627 \u0634\u06CC\u0637\u0627\u0646 \u0631\u0627\u062F\u06CC\u0648\u06CC\u06CC \u062E\u0646\u062F\u0627\u0646.",
+      "tg.cta": "\u0639\u0636\u0648\u06CC\u062A \u062F\u0631 @SAVEH00ME \u062F\u0631 \u062A\u0644\u06AF\u0631\u0627\u0645",
+      "tg.ctaShort": "\u0639\u0636\u0648\u06CC\u062A \u062F\u0631 @SAVEH00ME",
+      "tg.visit": "\u0645\u0634\u0627\u0647\u062F\u0647 \u2197",
+      "nf.kicker": "// \u0627\u062A\u0627\u0642 \u067E\u06CC\u062F\u0627 \u0646\u0634\u062F",
+      "nf.code": "\u06F4\u06F0\u06F4",
+      "nf.sub": "\u0627\u06CC\u0646 \u0627\u062A\u0627\u0642 \u062F\u0631 \u067E\u0627\u06A9\u0633\u0627\u0632\u06CC \u0622\u062E\u0631 \u0646\u0627\u0628\u0648\u062F \u0634\u062F\u0647 \u0627\u0633\u062A. \u0686\u0627\u0631\u0644\u06CC \u062F\u0627\u0631\u062F \u0631\u0648\u06CC\u0634 \u06A9\u0627\u0631 \u0645\u06CC\u200C\u06A9\u0646\u062F \u2014 \u0628\u0639\u062F\u0627\u064B \u0633\u0631 \u0628\u0632\u0646\u06CC\u062F.",
+      "nf.home": "\u0628\u0627\u0632\u06AF\u0634\u062A \u0628\u0647 \u0647\u062A\u0644"
+    }
+  };
+
+  const PAGE_TITLES = { home: "doc.title", about: "doc.about", telegram: "doc.telegram", notfound: "doc.nf" };
+  const t = (k) => (T[curLang] && T[curLang][k]) || T.en[k] || k;
+  const fmtNum = (n) => {
+    let s = String(n);
+    if (curLang === "fa") s = s.replace(/\d/g, (d) => FA_DIGITS[+d]);
+    return s;
+  };
+
+  /* ================= THEME ================= */
+  const body = document.body;
+  const themeToggle = $("#themeToggle");
+  const themeLabel = $("#themeLabel");
+
+  function applyTheme(mode) {
+    body.classList.toggle("theme-heaven", mode === "heaven");
+    body.classList.toggle("theme-hell", mode === "hell");
+    if (themeLabel) themeLabel.textContent = t(mode === "hell" ? "theme.toLight" : "theme.toDark");
+    document.dispatchEvent(new CustomEvent("themechange", { detail: { mode } }));
+  }
+
+  /* ================= REVEAL OBSERVER ================= */
+  const io = new IntersectionObserver((entries) => {
+    for (const e of entries) {
+      if (e.isIntersecting) {
+        e.target.classList.add("visible");
+        io.unobserve(e.target);
+      }
+    }
+  }, { threshold: 0.12 });
+  $$(".reveal").forEach((el) => io.observe(el));
+
+  /* ================= CHARACTERS (home only) ================= */
+  const grid = $("#charGrid");
+  let activeTab = "all";
+  let renderCharacters = () => {};
+
+  const CHARACTERS = [
+    { g: "hazbin", mono: "CM", c: "#ff4f9a",
+      en: { n: "Charlie Morningstar", r: "Princess of Hell \u00B7 Founder", q: "\u201CI have a dream!\u201D" },
+      fa: { n: "\u0686\u0627\u0631\u0644\u06CC \u0645\u0648\u0631\u0646\u06CC\u0646\u06AF\u200C\u0627\u0633\u062A\u0627\u0631", r: "\u0634\u0627\u0647\u062F\u062E\u062A \u062F\u0648\u0632\u062E \u00B7 \u0628\u0646\u06CC\u0627\u0646\u200C\u06AF\u0630\u0627\u0631", q: "\u00AB\u0645\u0646 \u06CC\u06A9 \u0631\u0648\u06CC\u0627 \u062F\u0627\u0631\u0645!\u00BB" } },
+    { g: "hazbin", mono: "VA", c: "#e05aff",
+      en: { n: "Vaggie", r: "Manager & Guardian", q: "\u201CStay behind me.\u201D" },
+      fa: { n: "\u0648\u0627\u06AF\u06CC", r: "\u0645\u062F\u06CC\u0631 \u0648 \u0646\u06AF\u0647\u0628\u0627\u0646", q: "\u00AB\u067E\u0634\u062A\u0650 \u0645\u0646 \u0628\u0645\u0627\u0646.\u00BB" } },
+    { g: "hazbin", mono: "AD", c: "#ff7ad9",
+      en: { n: "Angel Dust", r: "Resident Star", q: "\u201CCall me Angel \u2014 everyone does.\u201D" },
+      fa: { n: "\u0627\u0646\u062C\u0644 \u062F\u0627\u0633\u062A", r: "\u0633\u062A\u0627\u0631\u0647\u0650 \u0633\u0627\u06A9\u0646 \u0647\u062A\u0644", q: "\u00AB\u0628\u0647 \u0645\u0646 \u0628\u06AF\u0648 \u0627\u0646\u062C\u0644 \u2014 \u0647\u0645\u0647 \u0647\u0645\u06CC\u0646\u200C\u0637\u0648\u0631 \u0635\u062F\u0627\u06CC\u0645 \u0645\u06CC\u200C\u06A9\u0646\u0646\u062F.\u00BB" } },
+    { g: "hazbin", mono: "AL", c: "#ff3d3d",
+      en: { n: "Alastor", r: "The Radio Demon", q: "\u201CYou're never fully dressed without a smile!\u201D" },
+      fa: { n: "\u0622\u0644\u0627\u0633\u062A\u0648\u0631", r: "\u0634\u06CC\u0637\u0627\u0646 \u0631\u0627\u062F\u06CC\u0648\u06CC\u06CC", q: "\u00AB\u0628\u062F\u0648\u0646 \u0644\u0628\u062E\u0646\u062F\u060C \u0647\u06CC\u0686\u200C\u0648\u0642\u062A \u06A9\u0627\u0645\u0644\u0627\u064B \u0622\u0631\u0627\u0633\u062A\u0647 \u0646\u06CC\u0633\u062A\u06CC!\u00BB" } },
+    { g: "hazbin", mono: "HU", c: "#ffb054",
+      en: { n: "Husk", r: "Bartender", q: "\u201CAnother round? Fine.\u201D" },
+      fa: { n: "\u0647\u0627\u0633\u06A9", r: "\u0645\u062A\u0635\u062F\u06CC \u0628\u0627\u0631", q: "\u00AB\u06CC\u06A9 \u062F\u0648\u0631 \u062F\u06CC\u06AF\u0631\u061F \u0628\u0627\u0634\u0647.\u00BB" } },
+    { g: "hazbin", mono: "NI", c: "#ff8fb2",
+      en: { n: "Niffty", r: "Housekeeper", q: "\u201CSo many bugs, so little time!\u201D" },
+      fa: { n: "\u0646\u06CC\u0641\u062A\u06CC", r: "\u062E\u0627\u0646\u0647\u200C\u062F\u0627\u0631 \u0648 \u0646\u0638\u0627\u0641\u062A\u0686\u06CC", q: "\u00AB\u0627\u06CC\u0646\u200C\u0647\u0645\u0647 \u062D\u0634\u0631\u0647 \u0648 \u0627\u06CC\u0646\u200C\u0642\u062F\u0631 \u06A9\u0645 \u0648\u0642\u062A!\u00BB" } },
+    { g: "hazbin", mono: "LU", c: "#ffd166",
+      en: { n: "Lucifer", r: "King of Hell \u00B7 Duck Baron", q: "\u201CI'd rather spend eternity with my ducks.\u201D" },
+      fa: { n: "\u0644\u0648\u0633\u06CC\u0641\u0631", r: "\u067E\u0627\u062F\u0634\u0627\u0647 \u062F\u0648\u0632\u062E \u00B7 \u0627\u0631\u0628\u0627\u0628 \u0627\u0631\u062F\u06A9\u200C\u0647\u0627", q: "\u00AB\u062A\u0631\u062C\u06CC\u062D \u0645\u06CC\u200C\u062F\u0647\u0645 \u062C\u0627\u0648\u062F\u0627\u0646\u06AF\u06CC \u0631\u0627 \u06A9\u0646\u0627\u0631 \u0627\u0631\u062F\u06A9\u200C\u0647\u0627\u06CC\u0645 \u0628\u06AF\u0630\u0631\u0627\u0646\u0645.\u00BB" } },
+    { g: "imp", mono: "BL", c: "#ff6b4a",
+      en: { n: "Blitz\u00F8", r: "Founder & CEO", q: "\u201CThe 'o' is silent.\u201D" },
+      fa: { n: "\u0628\u0644\u06CC\u062A\u0632\u0648", r: "\u0628\u0646\u06CC\u0627\u0646\u200C\u06AF\u0630\u0627\u0631 \u0648 \u0645\u062F\u06CC\u0631\u0639\u0627\u0645\u0644", q: "\u00AB\u0622\u0646 \u00AB\u0627\u0648\u00BB\u06CC \u0622\u062E\u0631\u0634 \u0633\u0627\u06A9\u062A \u0627\u0633\u062A.\u00BB" } },
+    { g: "imp", mono: "MO", c: "#6ba8ff",
+      en: { n: "Moxxie", r: "Weapons Expert", q: "\u201CSir, that's a terrible idea.\u201D" },
+      fa: { n: "\u0645\u0648\u06A9\u0633\u06CC", r: "\u06A9\u0627\u0631\u0634\u0646\u0627\u0633 \u0633\u0644\u0627\u062D", q: "\u00AB\u0642\u0631\u0628\u0627\u0646\u060C \u0627\u06CC\u0646 \u0627\u06CC\u062F\u0647\u0650 \u062E\u06CC\u0644\u06CC \u0628\u062F\u06CC \u0627\u0633\u062A.\u00BB" } },
+    { g: "imp", mono: "MI", c: "#ff4f6b",
+      en: { n: "Millie", r: "Muscle & Mayhem", q: "\u201CI love this job!\u201D" },
+      fa: { n: "\u0645\u06CC\u0644\u06CC", r: "\u0639\u0636\u0644\u0647 \u0648 \u0647\u0631\u062C\u200C\u0648\u0645\u0631\u062C", q: "\u00AB\u0639\u0627\u0634\u0642 \u0627\u06CC\u0646 \u0634\u063A\u0644\u0645!\u00BB" } },
+    { g: "imp", mono: "LO", c: "#a06bff",
+      en: { n: "Loona", r: "Receptionist Hellhound", q: "\u201CUgh. Clients.\u201D" },
+      fa: { n: "\u0644\u0648\u0648\u0646\u0627", r: "\u0645\u0633\u0626\u0648\u0644 \u067E\u0630\u06CC\u0631\u0634\u060C \u0633\u06AF \u062F\u0648\u0632\u062E\u06CC", q: "\u00AB\u0627\u0648\u0647\u2026 \u0645\u0634\u062A\u0631\u06CC\u200C\u0647\u0627.\u00BB" } },
+    { g: "imp", mono: "ST", c: "#7aa0ff",
+      en: { n: "Stolas", r: "Prince of the Goetia", q: "\u201CThe stars told me you'd call.\u201D" },
+      fa: { n: "\u0627\u0633\u062A\u0648\u0644\u0627\u0633", r: "\u0634\u0627\u0647\u0632\u0627\u062F\u0647\u0650 \u06AF\u0648\u0626\u06CC\u0627", q: "\u00AB\u0633\u062A\u0627\u0631\u0647\u200C\u0647\u0627 \u06AF\u0641\u062A\u0646\u062F \u062A\u0645\u0627\u0633 \u0645\u06CC\u200C\u06AF\u06CC\u0631\u06CC.\u00BB" } },
+    { g: "imp", mono: "OC", c: "#8f7dff",
+      en: { n: "Octavia", r: "Grimoire Heir", q: "\u201CWhatever.\u201D" },
+      fa: { n: "\u0627\u06A9\u062A\u0627\u0648\u06CC\u0627", r: "\u0648\u0627\u0631\u062B \u06A9\u062A\u0627\u0628 \u0627\u0641\u0633\u0648\u0646", q: "\u00AB\u0628\u0647 \u0645\u0646 \u0686\u0647.\u00BB" } },
+    { g: "imp", mono: "FI", c: "#ffc94d",
+      en: { n: "Fizzarolli", r: "Jester Extraordinaire", q: "\u201CTip your clown!\u201D" },
+      fa: { n: "\u0641\u06CC\u0632\u0627\u0631\u0648\u0644\u06CC", r: "\u062F\u0644\u0642\u06A9 \u0628\u06CC\u200C\u0628\u062F\u06CC\u0644", q: "\u00AB\u0628\u0647 \u062F\u0644\u0642\u06A9\u062A\u0627\u0646 \u0627\u0646\u0639\u0627\u0645 \u0628\u062F\u0647\u06CC\u062F!\u00BB" } },
+    { g: "heaven", mono: "EM", c: "#ffe27a",
+      en: { n: "Emily", r: "Seraph of Joy", q: "\u201CWelcome to Heaven!\u201D" },
+      fa: { n: "\u0627\u0645\u06CC\u0644\u06CC", r: "\u0633\u0631\u0627\u0641\u06CC\u0645 \u0634\u0627\u062F\u06CC", q: "\u00AB\u0628\u0647 \u0628\u0647\u0634\u062A \u062E\u0648\u0634 \u0622\u0645\u062F\u06CC\u062F!\u00BB" } },
+    { g: "heaven", mono: "SE", c: "#9fd0ff",
+      en: { n: "Sera", r: "High Seraph", q: "\u201COrder must be kept.\u201D" },
+      fa: { n: "\u0633\u0631\u0627", r: "\u0633\u0631\u0627\u0641\u06CC\u0645 \u0627\u0639\u0638\u0645", q: "\u00AB\u0646\u0638\u0645 \u0628\u0627\u06CC\u062F \u062D\u0641\u0638 \u0634\u0648\u062F.\u00BB" } },
+    { g: "heaven", mono: "AD", c: "#ffcf8f",
+      en: { n: "Adam", r: "First Man \u00B7 Rockstar", q: "\u201CFirst man. Absolute legend.\u201D" },
+      fa: { n: "\u0622\u062F\u0645", r: "\u0646\u062E\u0633\u062A\u06CC\u0646 \u0627\u0646\u0633\u0627\u0646 \u00B7 \u0633\u062A\u0627\u0631\u0647\u0650 \u0631\u0627\u06A9", q: "\u00AB\u0646\u062E\u0633\u062A\u06CC\u0646 \u0645\u0631\u062F. \u0627\u0641\u0633\u0627\u0646\u0647\u0650 \u0645\u0637\u0644\u0642.\u00BB" } },
+    { g: "heaven", mono: "LT", c: "#cfd8e3",
+      en: { n: "Lute", r: "Exorcist Commander", q: "\u201CBlades up.\u201D" },
+      fa: { n: "\u0644\u0648\u062A", r: "\u0641\u0631\u0645\u0627\u0646\u062F\u0647\u0650 \u067E\u0627\u06A9\u0633\u0627\u0632\u06AF\u0631\u0627\u0646", q: "\u00AB\u0634\u0645\u0634\u06CC\u0631\u0647\u0627 \u0628\u0627\u0644\u0627.\u00BB" } },
+  ];
+
+  if (grid) {
+    function bindTilt() {
+      if (reducedMotion || !finePointer) return;
+      $$(".char-card", grid).forEach((card) => {
+        card.addEventListener("mousemove", (e) => {
+          const r = card.getBoundingClientRect();
+          const rx = ((e.clientY - r.top) / r.height - 0.5) * -10;
+          const ry = ((e.clientX - r.left) / r.width - 0.5) * 10;
+          card.style.transform = `perspective(700px) rotateX(${rx}deg) rotateY(${ry}deg) translateY(-4px)`;
+        });
+        card.addEventListener("mouseleave", () => { card.style.transform = ""; });
+      });
+    }
+
+    renderCharacters = () => {
+      grid.innerHTML = CHARACTERS.map((c) => {
+        const d = c[curLang];
+        return `
+        <article class="char-card reveal" data-g="${c.g}" style="--c:${c.c}">
+          <div class="avatar"><span>${c.mono}</span></div>
+          <h4>${d.n}</h4>
+          <p class="role">${d.r}</p>
+          <p class="quip">${d.q}</p>
+        </article>`;
+      }).join("");
+      $$(".char-card", grid).forEach((el) => {
+        io.observe(el);
+        el.classList.toggle("hidden", activeTab !== "all" && el.dataset.g !== activeTab);
+      });
+      bindTilt();
+    };
+
+    $$(".tab").forEach((tab) => {
+      tab.addEventListener("click", () => {
+        $$(".tab").forEach((x) => x.classList.remove("active"));
+        tab.classList.add("active");
+        activeTab = tab.dataset.g;
+        $$(".char-card", grid).forEach((card) => {
+          card.classList.toggle("hidden", activeTab !== "all" && card.dataset.g !== activeTab);
+        });
+      });
+    });
+  }
+
+  /* ================= COUNTERS (home only) ================= */
+  let refreshDoneCounters = () => {};
+  const counters = $$(".num");
+
+  if (counters.length) {
+    refreshDoneCounters = () => {
+      counters.forEach((el) => {
+        if (el.dataset.done === "1") {
+          el.textContent = fmtNum(parseInt(el.dataset.count, 10)) + (el.dataset.suffix || "");
+        }
+      });
+    };
+
+    const cio = new IntersectionObserver((entries) => {
+      for (const e of entries) {
+        if (!e.isIntersecting) continue;
+        cio.unobserve(e.target);
+        const el = e.target;
+        const target = parseInt(el.dataset.count, 10);
+        const suffix = el.dataset.suffix || "";
+        if (reducedMotion) {
+          el.textContent = fmtNum(target) + suffix;
+          el.dataset.done = "1";
+          continue;
+        }
+        const dur = 1400;
+        const start = performance.now();
+        (function step(now) {
+          const k = Math.min(1, (now - start) / dur);
+          const eased = 1 - Math.pow(1 - k, 3);
+          el.textContent = fmtNum(Math.round(target * eased)) + suffix;
+          if (k < 1) requestAnimationFrame(step);
+          else el.dataset.done = "1";
+        })(start);
+      }
+    }, { threshold: 0.6 });
+    counters.forEach((el) => cio.observe(el));
+  }
+
+  /* ================= QUOTE ROTATOR (home only) ================= */
+  const QUOTES = [
+    { en: ["You're never fully dressed without a smile!", "Alastor, the Radio Demon"],
+      fa: ["\u0628\u062F\u0648\u0646 \u0644\u0628\u062E\u0646\u062F\u060C \u0647\u06CC\u0686\u200C\u0648\u0642\u062A \u06A9\u0627\u0645\u0644\u0627\u064B \u0622\u0631\u0627\u0633\u062A\u0647 \u0646\u06CC\u0633\u062A\u06CC!", "\u0622\u0644\u0627\u0633\u062A\u0648\u0631\u060C \u0634\u06CC\u0637\u0627\u0646 \u0631\u0627\u062F\u06CC\u0648\u06CC\u06CC"] },
+    { en: ["I have a dream! And it involves a lot of paperwork.", "Charlie Morningstar"],
+      fa: ["\u0645\u0646 \u06CC\u06A9 \u0631\u0648\u06CC\u0627 \u062F\u0627\u0631\u0645! \u0648 \u06A9\u0644\u06CC \u0647\u0645 \u06A9\u0627\u0631 \u0627\u062F\u0627\u0631\u06CC \u062F\u0627\u0631\u062F.", "\u0686\u0627\u0631\u0644\u06CC \u0645\u0648\u0631\u0646\u06CC\u0646\u06AF\u200C\u0627\u0633\u062A\u0627\u0631"] },
+    { en: ["The 'o' is silent.", "Blitz\u00F8, Founder of I.M.P."],
+      fa: ["\u0622\u0646 \u00AB\u0627\u0648\u00BB\u06CC \u0622\u062E\u0631\u0634 \u0633\u0627\u06A9\u062A \u0627\u0633\u062A.", "\u0628\u0644\u06CC\u062A\u0632\u0648\u060C \u0628\u0646\u06CC\u0627\u0646\u200C\u06AF\u0630\u0627\u0631 \u0622\u06CC.\u0627\u0645.\u067E\u06CC"] },
+    { en: ["Call me Angel \u2014 everyone does.", "Angel Dust"],
+      fa: ["\u0628\u0647 \u0645\u0646 \u0628\u06AF\u0648 \u0627\u0646\u062C\u0644 \u2014 \u0647\u0645\u0647 \u0647\u0645\u06CC\u0646\u200C\u0637\u0648\u0631 \u0635\u062F\u0627\u06CC\u0645 \u0645\u06CC\u200C\u06A9\u0646\u0646\u062F.", "\u0627\u0646\u062C\u0644 \u062F\u0627\u0633\u062A"] },
+    { en: ["I'd rather spend eternity with my ducks.", "Lucifer Morningstar"],
+      fa: ["\u062A\u0631\u062C\u06CC\u062D \u0645\u06CC\u200C\u062F\u0647\u0645 \u062C\u0627\u0648\u062F\u0627\u0646\u06AF\u06CC \u0631\u0627 \u06A9\u0646\u0627\u0631 \u0627\u0631\u062F\u06A9\u200C\u0647\u0627\u06CC\u0645 \u0628\u06AF\u0630\u0631\u0627\u0646\u0645.", "\u0644\u0648\u0633\u06CC\u0641\u0631 \u0645\u0648\u0631\u0646\u06CC\u0646\u06AF\u200C\u0627\u0633\u062A\u0627\u0631"] },
+    { en: ["First man. Absolute legend.", "Adam"],
+      fa: ["\u0646\u062E\u0633\u062A\u06CC\u0646 \u0645\u0631\u062F. \u0627\u0641\u0633\u0627\u0646\u0647\u0650 \u0645\u0637\u0644\u0642.", "\u0622\u062F\u0645"] },
+    { en: ["Ugh. Clients.", "Loona"],
+      fa: ["\u0627\u0648\u0647\u2026 \u0645\u0634\u062A\u0631\u06CC\u200C\u0647\u0627.", "\u0644\u0648\u0648\u0646\u0627"] },
+    { en: ["Every sinner has a future. That's the whole point.", "Charlie Morningstar"],
+      fa: ["\u0647\u0631 \u06AF\u0646\u0627\u0647\u06A9\u0627\u0631\u06CC \u0622\u06CC\u0646\u062F\u0647\u200C\u0627\u06CC \u062F\u0627\u0631\u062F. \u06A9\u0644 \u0645\u0627\u062C\u0631\u0627 \u0647\u0645\u06CC\u0646 \u0627\u0633\u062A.", "\u0686\u0627\u0631\u0644\u06CC \u0645\u0648\u0631\u0646\u06CC\u0646\u06AF\u200C\u0627\u0633\u062A\u0627\u0631"] },
+  ];
+
+  const quoteCard = $("#quoteCard");
+  let paintQuote = () => {};
+
+  if (quoteCard) {
+    const quoteText = $("#quoteText");
+    const quoteAuthor = $("#quoteAuthor");
+    const dotsWrap = $("#quoteDots");
+    let qi = 0, qTimer;
+
+    dotsWrap.innerHTML = QUOTES.map(() => "<i></i>").join("");
+    const dots = $$("i", dotsWrap);
+
+    paintQuote = () => {
+      quoteText.textContent = "\u201C" + QUOTES[qi][curLang][0] + "\u201D";
+      quoteAuthor.textContent = "\u2014 " + QUOTES[qi][curLang][1];
+      dots.forEach((d, di) => d.classList.toggle("on", di === qi));
+    };
+
+    function showQuote(i, animate = true) {
+      qi = (i + QUOTES.length) % QUOTES.length;
+      if (!animate) { paintQuote(); return; }
+      quoteCard.classList.add("fading");
+      setTimeout(() => {
+        paintQuote();
+        quoteCard.classList.remove("fading");
+      }, 350);
+    }
+
+    function scheduleQuotes() {
+      clearInterval(qTimer);
+      if (!reducedMotion) qTimer = setInterval(() => showQuote(qi + 1), 5200);
+    }
+
+    quoteCard.addEventListener("click", () => { showQuote(qi + 1); scheduleQuotes(); });
+
+    /* exposed for init below */
+    window.__hhScheduleQuotes = scheduleQuotes;
+  }
+
+  /* ================= LANGUAGE ================= */
+  const langToggle = $("#langToggle");
+  const langLabel = $("#langLabel");
+
+  function applyLang(lang) {
+    curLang = lang;
+    try { localStorage.setItem("hh-lang", lang); } catch (_) {}
+    const rtl = lang === "fa";
+    document.documentElement.lang = rtl ? "fa" : "en";
+    document.documentElement.dir = rtl ? "rtl" : "ltr";
+    document.title = t(PAGE_TITLES[pageId] || "doc.title");
+
+    $$("[data-i18n]").forEach((el) => { el.textContent = t(el.dataset.i18n); });
+    $$("[data-i18n-html]").forEach((el) => { el.innerHTML = t(el.dataset.i18nHtml); });
+    $$("[data-i18n-title]").forEach((el) => { el.title = t(el.dataset.i18nTitle); });
+
+    if (langLabel) langLabel.textContent = rtl ? "English" : "\u0641\u0627\u0631\u0633\u06CC";
+    if (themeLabel) themeLabel.textContent = t(body.classList.contains("theme-hell") ? "theme.toLight" : "theme.toDark");
+
+    renderCharacters();
+    refreshDoneCounters();
+    paintQuote();
+  }
+
+  if (langToggle) {
+    langToggle.addEventListener("click", () => applyLang(curLang === "fa" ? "en" : "fa"));
+  }
+
+  /* ================= INIT SEQUENCE ================= */
+  let savedLang = null;
+  try { savedLang = localStorage.getItem("hh-lang"); } catch (_) {}
+  let savedTheme = null;
+  try { savedTheme = localStorage.getItem("hh-theme"); } catch (_) {}
+  applyTheme(savedTheme === "heaven" ? "heaven" : "hell");
+  applyLang(savedLang === "fa" ? "fa" : "en");
+  if (window.__hhScheduleQuotes) window.__hhScheduleQuotes();
+
+  if (themeToggle) {
+    themeToggle.addEventListener("click", () => {
+      const next = body.classList.contains("theme-hell") ? "heaven" : "hell";
+      applyTheme(next);
+      try { localStorage.setItem("hh-theme", next); } catch (_) {}
+    });
+  }
+
+  /* ================= PARTICLES (embers / golden dust) ================= */
+  const canvas = $("#fx");
+
+  if (canvas) {
+    const ctx = canvas.getContext("2d");
+    let W = 0, H = 0, particles = [];
+    const COUNT = Math.min(90, Math.floor(window.innerWidth / 14));
+
+    function rand(a, b) { return a + Math.random() * (b - a); }
+
+    function makeParticle(mode) {
+      if (mode === "hell") {
+        return {
+          kind: "ember",
+          x: rand(0, W),
+          y: H + rand(0, 40),
+          vy: -rand(0.35, 1.5),
+          sway: rand(0.4, 1.6),
+          phase: rand(0, Math.PI * 2),
+          size: rand(0.8, 2.8),
+          hue: rand(12, 42),
+          life: rand(0.55, 1),
+          decay: rand(0.002, 0.006),
+        };
+      }
+      const big = Math.random() < 0.18;
+      return {
+        kind: "spark",
+        x: rand(0, W),
+        y: -rand(0, 40),
+        vy: rand(0.25, 0.95),
+        sway: rand(0.3, 1.3),
+        phase: rand(0, Math.PI * 2),
+        size: big ? rand(2.4, 4.2) : rand(0.8, 2.2),
+        hue: Math.random() < 0.35 ? 48 : rand(44, 56),
+        life: rand(0.6, 1),
+        decay: rand(0.001, 0.004),
+      };
+    }
+
+    function seed(mode) {
+      particles = Array.from({ length: COUNT }, () => {
+        const p = makeParticle(mode);
+        p.y = rand(0, H);
+        return p;
+      });
+    }
+
+    function currentMode() {
+      return body.classList.contains("theme-hell") ? "hell" : "heaven";
+    }
+    seed(currentMode());
+    document.addEventListener("themechange", () => seed(currentMode()));
+
+    function resize() {
+      W = canvas.width = window.innerWidth;
+      H = canvas.height = window.innerHeight;
+    }
+    resize();
+    window.addEventListener("resize", resize);
+
+    function tick() {
+      ctx.clearRect(0, 0, W, H);
+      const mode = currentMode();
+      ctx.globalCompositeOperation = mode === "hell" ? "lighter" : "source-over";
+
+      for (let i = particles.length - 1; i >= 0; i--) {
+        const p = particles[i];
+        p.phase += 0.02 * p.sway;
+        p.x += Math.sin(p.phase) * p.sway * 0.6;
+        p.y += p.vy;
+        p.life -= p.decay;
+
+        if (p.life <= 0 || p.y < -60 || p.y > H + 60) {
+          particles[i] = makeParticle(mode);
+          continue;
+        }
+
+        const flicker = p.kind === "ember"
+          ? 0.55 + Math.abs(Math.sin(p.phase * 3)) * 0.45
+          : 0.7 + Math.abs(Math.sin(p.phase * 2)) * 0.3;
+
+        const a = Math.max(0, Math.min(1, p.life)) * flicker;
+
+        if (mode === "hell") {
+          const g = ctx.createRadialGradient(p.x, p.y, 0, p.x, p.y, p.size * 4);
+          g.addColorStop(0, `hsla(${p.hue}, 100%, 62%, ${a})`);
+          g.addColorStop(1, `hsla(${p.hue}, 100%, 50%, 0)`);
+          ctx.fillStyle = g;
+          ctx.beginPath();
+          ctx.arc(p.x, p.y, p.size * 4, 0, Math.PI * 2);
+          ctx.fill();
+        } else {
+          ctx.fillStyle = `hsla(${p.hue}, 90%, ${Math.random() < 0.35 ? 100 : 68}%, ${a * 0.9})`;
+          ctx.beginPath();
+          ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
+          ctx.fill();
+        }
+      }
+      requestAnimationFrame(tick);
+    }
+
+    if (!reducedMotion) {
+      tick();
+    } else {
+      ctx.globalCompositeOperation = "source-over";
+      for (const p of particles) {
+        ctx.fillStyle = `hsla(45, 80%, 70%, ${p.life * 0.6})`;
+        ctx.beginPath();
+        ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
+        ctx.fill();
+      }
+    }
+  }
+
+  /* ================= SCROLL PROGRESS ================= */
+  const bar = $("#progressBar");
+  if (bar) {
+    function onScroll() {
+      const max = document.documentElement.scrollHeight - window.innerHeight;
+      bar.style.width = (max > 0 ? (window.scrollY / max) * 100 : 0) + "%";
+    }
+    window.addEventListener("scroll", onScroll, { passive: true });
+    onScroll();
+  }
+
+  /* ================= HERO PARALLAX (home only) ================= */
+  if (!reducedMotion && finePointer) {
+    const heroContent = $(".hero-content");
+    const orbs = $$(".orb");
+    if (heroContent) {
+      window.addEventListener("mousemove", (e) => {
+        const dx = e.clientX / window.innerWidth - 0.5;
+        const dy = e.clientY / window.innerHeight - 0.5;
+        heroContent.style.transform = `translate(${dx * -14}px, ${dy * -10}px)`;
+        orbs.forEach((o, i) => {
+          o.style.translate = `${dx * (i ? 26 : -26)}px ${dy * (i ? 20 : -20)}px`;
+        });
+      }, { passive: true });
+    }
+  }
+})();

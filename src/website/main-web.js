@@ -3,6 +3,8 @@ import aboutHtml from "./view/about.html";
 import notFoundHtml from "./view/404.html";
 import telegramHtml from "./view/telegram.html";
 import logoImage from "./view/image-1.jpg";
+import siteStyles from "./view/styles.css";
+import siteScript from "./view/script.js.txt";
 
 // آدرس کنونیکال هر صفحه؛ همینجا برای صفحه‌ی جدید یه ورودی اضافه کن
 const HTML_PAGES = {
@@ -24,6 +26,14 @@ const BINARY_ASSETS = {
   "/image-1.jpg": { data: logoImage, contentType: "image/jpeg" },
 };
 
+// فایل‌های متنی (CSS / JS) که به صورت رشته باندل و از همون origin سرو می‌شن.
+// نکته: اسکریپت سمت مرورگر با پسوند "script.js.txt" ذخیره شده تا esbuild/wrangler
+// اون رو متن خام در نظر بگیره، نه اینکه بخواد به عنوان کد داخل Worker اجراش کنه.
+const TEXT_ASSETS = {
+  "/styles.css": { data: siteStyles, contentType: "text/css; charset=UTF-8", maxAge: 300 },
+  "/script.js": { data: siteScript, contentType: "text/javascript; charset=UTF-8", maxAge: 300 },
+};
+
 const ROBOTS_TXT = "User-agent: *\nAllow: /\n";
 
 // هدرهای امنیتی پایه‌ای که روی تمام پاسخ‌ها اعمال می‌شن
@@ -32,7 +42,7 @@ const SECURITY_HEADERS = {
   "X-Frame-Options": "SAMEORIGIN",
   "Referrer-Policy": "strict-origin-when-cross-origin",
   "Content-Security-Policy":
-    "default-src 'self'; img-src 'self' data:; style-src 'self' 'unsafe-inline'; script-src 'self'; base-uri 'self'; form-action 'self'",
+    "default-src 'self'; img-src 'self' data:; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' data: https://fonts.gstatic.com; script-src 'self'; base-uri 'self'; form-action 'self'",
   "Permissions-Policy": "camera=(), microphone=(), geolocation=()",
 };
 
@@ -110,6 +120,11 @@ export async function handleWebsiteUpdate(request, env) {
   const binary = BINARY_ASSETS[pathname];
   if (binary) {
     return binaryResponse(binary.data, binary.contentType, method);
+  }
+
+  const textAsset = TEXT_ASSETS[pathname];
+  if (textAsset) {
+    return textResponse(textAsset.data, textAsset.contentType, textAsset.maxAge, method);
   }
 
   const page = HTML_PAGES[pathname];

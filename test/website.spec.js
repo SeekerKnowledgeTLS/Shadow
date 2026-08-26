@@ -32,6 +32,19 @@ describe('handleWebsiteUpdate', () => {
 		expect(response.headers.get('Cache-Control')).toContain('immutable');
 	});
 
+	it('serves the bundled stylesheet as CSS', async () => {
+		const response = await handleWebsiteUpdate(new Request('http://example.com/styles.css'), {});
+		expect(response.status).toBe(200);
+		expect(response.headers.get('Content-Type')).toContain('text/css');
+		expect(await response.text()).toContain(':root');
+	});
+
+	it('serves the bundled script as JS, from the .txt source file', async () => {
+		const response = await handleWebsiteUpdate(new Request('http://example.com/script.js'), {});
+		expect(response.status).toBe(200);
+		expect(response.headers.get('Content-Type')).toContain('text/javascript');
+	});
+
 	it('serves robots.txt', async () => {
 		const response = await handleWebsiteUpdate(new Request('http://example.com/robots.txt'), {});
 		expect(response.status).toBe(200);
@@ -64,5 +77,12 @@ describe('handleWebsiteUpdate', () => {
 		expect(response.headers.get('X-Content-Type-Options')).toBe('nosniff');
 		expect(response.headers.get('X-Frame-Options')).toBe('SAMEORIGIN');
 		expect(response.headers.get('Referrer-Policy')).toBe('strict-origin-when-cross-origin');
+	});
+
+	it('allows Google Fonts in the CSP for the fonts the pages link to', async () => {
+		const response = await handleWebsiteUpdate(new Request('http://example.com/'), {});
+		const csp = response.headers.get('Content-Security-Policy');
+		expect(csp).toContain('https://fonts.googleapis.com');
+		expect(csp).toContain('https://fonts.gstatic.com');
 	});
 });
