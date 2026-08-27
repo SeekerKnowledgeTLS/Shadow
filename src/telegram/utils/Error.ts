@@ -1,4 +1,5 @@
 import { Api } from "grammy";
+import { Env } from "../../types.js";
 import { getErrorLogTarget } from "../db/settings.js";
 import { escapeHtml } from "../services/telegramService.js";
 
@@ -14,7 +15,12 @@ const COOLDOWN_SECONDS = 300; // 5 minutes - only active if env.ERROR_KV is defi
  * @param {Error|Object} error - Error object
  * @param {number|string|null} userId - Telegram user id (optional)
  */
-export async function reportError(env, context, error, userId = null) {
+export async function reportError(
+  env: Env,
+  context: string,
+  error: Error | unknown,
+  userId: number | string | null = null
+): Promise<void> {
   if (!env.TELEGRAM_TOKEN) {
     console.error("TELEGRAM_TOKEN not found for error reporting");
     return;
@@ -60,7 +66,7 @@ export async function reportError(env, context, error, userId = null) {
 /** @deprecated Use reportError — kept as alias for existing call sites */
 export const reportErrorToAdmin = reportError;
 
-async function isOnCooldown(kv, context) {
+async function isOnCooldown(kv: KVNamespace, context: string): Promise<boolean> {
   try {
     const value = await kv.get(`error_cooldown:${context}`);
     return value !== null;
@@ -70,7 +76,7 @@ async function isOnCooldown(kv, context) {
   }
 }
 
-async function setCooldown(kv, context) {
+async function setCooldown(kv: KVNamespace, context: string): Promise<void> {
   try {
     await kv.put(`error_cooldown:${context}`, "1", {
       expirationTtl: COOLDOWN_SECONDS,
@@ -80,7 +86,7 @@ async function setCooldown(kv, context) {
   }
 }
 
-function formatTimestamp(date) {
+function formatTimestamp(date: Date): string {
   // en-GB gives DD/MM/YYYY, HH:mm:ss with plain Latin digits (safe in any
   // terminal), and timeZone: "Asia/Tehran" converts from the Worker's
   // underlying UTC clock to the correct local wall time (UTC+3:30),
@@ -91,7 +97,7 @@ function formatTimestamp(date) {
   });
 }
 
-function formatErrorMessage(context, error, userId) {
+function formatErrorMessage(context: string, error: Error | unknown, userId?: number | string | null): string {
   const now = formatTimestamp(new Date());
   const errText =
     error instanceof Error ? error.message : JSON.stringify(error);
@@ -104,15 +110,17 @@ function formatErrorMessage(context, error, userId) {
     msg += `👤 <b>کاربر:</b> <code>${escapeHtml(userId)}</code>\n`;
   }
 
-  if (error?.name) {
-    msg += `🏷 <b>نوع:</b> <code>${escapeHtml(error.name)}</code>\n`;
+  const errObj = error instanceof Error ? error : null;
+
+  if (errObj?.name) {
+    msg += `🏷 <b>نوع:</b> <code>${escapeHtml(errObj.name)}</code>\n`;
   }
 
   msg += `\n🔴 <b>خطا:</b>\n`;
   msg += `<code>${escapeHtml(errText)}</code>\n\n`;
 
-  if (error?.stack) {
-    const stack = error.stack.split("\n").slice(0, 8).join("\n");
+  if (errObj?.stack) {
+    const stack = errObj.stack.split("\n").slice(0, 8).join("\n");
     msg += `<b>Stack Trace:</b>\n<pre>${escapeHtml(stack)}</pre>\n`;
   }
 
@@ -123,7 +131,7 @@ function formatErrorMessage(context, error, userId) {
   return msg;
 }
 
-async function sendErrorToChat(token, chatId, text, threadId = null) {
+async function sendErrorToChat(token: string, chatId: string | number, text: string, threadId: number | null = null): Promise<void> {
   const api = new Api(token);
 
   await api.sendMessage(chatId, text, {
