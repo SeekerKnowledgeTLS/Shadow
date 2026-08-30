@@ -1,18 +1,19 @@
-import { Bot } from "grammy";
+import { Bot, Context, NextFunction } from "grammy";
 import { conversations } from "@grammyjs/conversations";
 import { AsyncLocalStorage } from "node:async_hooks";
+import { Env } from "../types.js";
 import { UserService } from "./services/userService.js";
 import { handleGrammyError } from "./utils/Errorhandler.js";
 
 /** Per-request Cloudflare ExecutionContext (for waitUntil). */
-export const executionCtxStorage = new AsyncLocalStorage();
+export const executionCtxStorage = new AsyncLocalStorage<ExecutionContext>();
 
 // In-memory throttle: avoid writing to D1 on every message from the same user.
 // Best-effort only (isolate may be recycled; multiple isolates can run in parallel).
-const lastSeen = new Map();
+const lastSeen = new Map<number, number>();
 const THROTTLE_MS = 5 * 60 * 1000; // 5 minutes
 
-export function createBot(env) {
+export function createBot(env: Env): Bot {
   if (!env.TELEGRAM_TOKEN) {
     throw new Error("TELEGRAM_TOKEN is not set in secrets");
   }
@@ -22,7 +23,7 @@ export function createBot(env) {
 
   bot.use(conversations());
 
-  bot.use(async (ctx, next) => {
+  bot.use(async (ctx: Context, next: NextFunction) => {
     const from = ctx.from;
 
     if (isDirectUserInteraction(ctx) && from?.id) {
@@ -51,7 +52,7 @@ export function createBot(env) {
   return bot;
 };
 
-export function isDirectUserInteraction(ctx) {
+export function isDirectUserInteraction(ctx: Context): boolean {
   // Private chat with the bot: Every message or callback query counts.
   if (ctx.chat?.type === "private") {
     return true;
