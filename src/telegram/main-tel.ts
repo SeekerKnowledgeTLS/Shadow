@@ -11,7 +11,6 @@ import { adminPanelFeature } from "./features/adminPanel.js";
 import { channelSuffixFeature } from "./features/channelSuffix.js";
 import { menuFeature } from "./features/menu.js";
 
-
 // webhookCallback is overloaded per-adapter, so `ReturnType<typeof webhookCallback>`
 // alone resolves to its broad, generic multi-adapter overload rather than the
 // specific "cloudflare-mod" one. Wrapping the actual call in a helper forces
@@ -23,7 +22,7 @@ function createTelegramHandler(bot: Bot, secretToken: string) {
 }
 
 type TelegramHandler = ReturnType<typeof createTelegramHandler>;
- 
+
 // It is created only once per isolate and reused across requests,
 // instead of each webhook creating a new Bot from scratch and re-registering the handlers.
 let handlerPromise: Promise<TelegramHandler> | null = null;
@@ -58,7 +57,15 @@ function getHandler(env: Env): Promise<TelegramHandler> {
       // and when calling setWebhook (as the secret_token parameter); otherwise,
       // Telegram won't send any header, and all requests will result in a 401 error.
       return createTelegramHandler(bot, env.TELEGRAM_WEBHOOK_SECRET);
-    })();
+    })().catch((err) => {
+      // If setup failed, don't leave a rejected promise cached: a Promise is
+      // truthy whether it resolves or rejects, so `if (!handlerPromise)` would
+      // otherwise stay false forever and every future request would keep
+      // getting this same failure until Cloudflare recycles the isolate.
+      // Resetting it here lets the next request retry setup from scratch.
+      handlerPromise = null;
+      throw err;
+    });
   }
   return handlerPromise;
 }
