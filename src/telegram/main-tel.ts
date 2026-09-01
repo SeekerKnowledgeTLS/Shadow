@@ -1,5 +1,7 @@
 import { createBot, executionCtxStorage } from "./bot.js";
-import { webhookCallback } from "grammy";
+import { Bot, webhookCallback } from "grammy";
+import { Update } from "grammy/types";
+import { Env } from "../types.js";
 import { reportErrorToAdmin } from "./utils/Error.js";
 import { startCommand } from "./commands/start.js";
 import { channelsFeature } from "./features/channels.js";
@@ -9,14 +11,27 @@ import { adminPanelFeature } from "./features/adminPanel.js";
 import { channelSuffixFeature } from "./features/channelSuffix.js";
 import { menuFeature } from "./features/menu.js";
 
+
+// webhookCallback is overloaded per-adapter, so `ReturnType<typeof webhookCallback>`
+// alone resolves to its broad, generic multi-adapter overload rather than the
+// specific "cloudflare-mod" one. Wrapping the actual call in a helper forces
+// TypeScript to resolve the correct overload, then we extract the type from that.
+function createTelegramHandler(bot: Bot, secretToken: string) {
+  return webhookCallback(bot, "cloudflare-mod", {
+    secretToken,
+  });
+}
+
+type TelegramHandler = ReturnType<typeof createTelegramHandler>;
+ 
 // It is created only once per isolate and reused across requests,
 // instead of each webhook creating a new Bot from scratch and re-registering the handlers.
-let handlerPromise = null;
+let handlerPromise: Promise<TelegramHandler> | null = null;
 
 // Any new feature simply needs to be added here.
 // Required signature for each entry: (bot, env) => void | Promise<void>
 // Order matters for "message" handlers that don't call next(): echo must stay last.
-const FEATURES = [
+const FEATURES: Array<(bot: Bot, env: Env) => void | Promise<void>> = [
   (bot, env) => startCommand(bot, env),
   (bot, env) => menuFeature(bot, env),
   (bot, env) => setErrorLogCommand(bot, env),
@@ -26,7 +41,7 @@ const FEATURES = [
   (bot, env) => echo(bot),
 ];
 
-function getHandler(env) {
+function getHandler(env: Env): Promise<TelegramHandler> {
   if (!handlerPromise) {
     handlerPromise = (async () => {
       if (!env.TELEGRAM_WEBHOOK_SECRET) {
@@ -39,12 +54,10 @@ function getHandler(env) {
         await registerFeature(bot, env);
       }
 
-      return webhookCallback(bot, "cloudflare-mod", {
-        // This value must be set to be exactly the same both here (as the secret)
-        // and when calling setWebhook (as the secret_token parameter); otherwise,
-        // Telegram won't send any header, and all requests will result in a 401 error.
-        secretToken: env.TELEGRAM_WEBHOOK_SECRET,
-      });
+      // This value must be set to be exactly the same both here (as the secret)
+      // and when calling setWebhook (as the secret_token parameter); otherwise,
+      // Telegram won't send any header, and all requests will result in a 401 error.
+      return createTelegramHandler(bot, env.TELEGRAM_WEBHOOK_SECRET);
     })();
   }
   return handlerPromise;
@@ -55,7 +68,7 @@ function getHandler(env) {
  * @param {object} env
  * @param {ExecutionContext} [executionCtx] - Cloudflare ExecutionContext for waitUntil
  */
-export async function handleTelegramUpdate(request, env, executionCtx) {
+export async function handleTelegramUpdate(request: Request, env: Env, executionCtx?: ExecutionContext): Promise<Response> {
   // Important: Cloning the request must be done before the body is read by the handler.
   // If called after the handler executes, request.clone() will throw a "Body has already been used" error,
   // because the body has already been consumed.
@@ -70,7 +83,7 @@ export async function handleTelegramUpdate(request, env, executionCtx) {
 
       // Attempting to report an error
       try {
-        const update = await requestForErrorReporting.json();
+        const update = await requestForErrorReporting.json() as Update;
         const userId = update.message?.from?.id || update.callback_query?.from?.id;
         if (userId) {
           await reportErrorToAdmin(env, "handleTelegramUpdate", err, userId);
