@@ -2,7 +2,7 @@ import { createBot, executionCtxStorage } from "./bot.js";
 import { Bot, webhookCallback } from "grammy";
 import { Update } from "grammy/types";
 import { Env } from "../types.js";
-import { reportErrorToAdmin } from "./utils/Error.js";
+import { reportError } from "./utils/Error.js";
 import { startCommand } from "./commands/start.js";
 import { channelsFeature } from "./features/channels.js";
 import { echo } from "./features/echoFun.js";
@@ -86,7 +86,7 @@ export async function handleTelegramUpdate(request: Request, env: Env, execution
         const update = await requestForErrorReporting.json() as Update;
         const userId = update.message?.from?.id || update.callback_query?.from?.id;
         if (userId) {
-          await reportErrorToAdmin(env, "handleTelegramUpdate", err, userId);
+          await reportError(env, "handleTelegramUpdate", err, userId);
         }
       } catch (e) {
         console.error("Failed to report error:", e);

@@ -63,9 +63,6 @@ export async function reportError(
   }
 }
 
-/** @deprecated Use reportError — kept as alias for existing call sites */
-export const reportErrorToAdmin = reportError;
-
 async function isOnCooldown(kv: KVNamespace, context: string): Promise<boolean> {
   try {
     const value = await kv.get(`error_cooldown:${context}`);
